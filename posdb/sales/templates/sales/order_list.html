@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}បញ្ជីការបញ្ជាទិញ — POS System{% endblock %}
+
+{% block extra_css %}
+.status-paid { background: #dcfce7; color: #166534; }
+.status-open { background: #fef9c3; color: #854d0e; }
+.status-refunded { background: #f3e8ff; color: #6b21a8; }
+.status-cancelled { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid #f1f5f9;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+tr:hover {
+    background-color: #f8fafc;
+}
+
+.order-id {
+    font-weight: 700;
+    color: var(--primary);
+}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <h1>🧾 បញ្ជីការបញ្ជាទិញ</h1>
+            <p style="color: var(--text-muted);">បានកត់ត្រាចំនួន {{ orders|length }} ប្រតិបត្តិការ</p>
+        </div>
+        <a href="/admin/sales/order/add/" class="btn btn-primary" target="_blank">
+            ＋ បង្កើតការបញ្ជាទិញ
+        </a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>លេខរៀង (#)</th>
+                <th>អ្នកគិតលុយ</th>
+                <th>កាលបរិច្ឆេទ</th>
+                <th>ស្ថានភាព</th>
+                <th>ចំនួនមុខទំនិញ</th>
+                <th style="text-align: right;">សរុប</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><a href="/sales/orders/{{ order.pk }}/" class="order-id">#{{ order.pk }}</a></td>
+                <td>{{ order.cashier }}</td>
+                <td style="font-size: 0.9rem; color: var(--text-muted);">{{ order.created_at|date:"d M Y, H:i" }}</td>
+                <td>
+                    <span class="badge status-{{ order.status }}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ order.items.count }} មុខ</td>
+                <td style="text-align: right; font-weight: 700;">${{ order.total|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic;">
+                    មិនទាន់មានការបញ្ជាទិញនៅឡើយទេ។
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('nav-orders').classList.add('active');
+</script>
+{% endblock %}

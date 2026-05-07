@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+
+{% block title %}ទំព័រលក់ទំនិញ — POS System{% endblock %}
+
+{% block extra_css %}
+.checkout-container {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2.5rem;
+    height: calc(100vh - 180px);
+}
+
+@media (max-width: 1200px) {
+    .checkout-container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+}
+
+.product-selection {
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.cart-sidebar {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    position: sticky;
+    top: 100px;
+}
+
+.product-grid-checkout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.product-item-pos {
+    background: var(--card-bg);
+    padding: 1.75rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.product-item-pos:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.product-item-pos img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cart-items-pos {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 2rem 0;
+    padding-right: 0.75rem;
+}
+
+.cart-item-pos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border);
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.qty-control-pos {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.qty-btn-pos {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    transition: all 0.2s;
+}
+
+.qty-btn-pos:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.summary-pos {
+    border-top: 2px dashed var(--border);
+    padding-top: 2rem;
+}
+
+.total-pos {
+    font-size: 2.25rem;
+    font-weight: 900;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-main);
+    margin-bottom: 2rem;
+    letter-spacing: -0.02em;
+}
+
+#pos-search {
+    width: 100%;
+    padding: 1.25rem 2rem;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: var(--shadow);
+}
+
+#pos-search:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 6px var(--primary-soft);
+    transform: scale(1.01);
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.receipt-modal {
+    background: white;
+    width: 400px;
+    padding: 3rem;
+    border-radius: 32px;
+    color: #1e293b;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.receipt-header {
+    text-align: center;
+    border-bottom: 2px dashed #e2e8f0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <!-- Left: Product Selection -->
+    <div class="product-selection">
+        <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="margin: 0; font-size: 2rem; font-weight: 900;">🛒 លក់ទំនិញ</h1>
+            </div>
+            <div style="width: 280px; position: relative;">
+                <input type="text" id="pos-search" placeholder="ស្វែងរក..." style="padding: 0.75rem 1.25rem; border-radius: 12px; font-size: 0.95rem;">
+                <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
+            </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none;">
+            <button class="btn active" style="padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.85rem; flex-shrink: 0;" onclick="filterByCategory('all')">ទាំងអស់</button>
+            <button class="btn" style="padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.85rem; flex-shrink: 0; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border);" onclick="filterByCategory('food')">🍱 អាហារ</button>
+            <button class="btn" style="padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.85rem; flex-shrink: 0; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border);" onclick="filterByCategory('electronics')">💻 អេឡិចត្រូនិក</button>
+            <button class="btn" style="padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.85rem; flex-shrink: 0; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border);" onclick="filterByCategory('clothing')">👕 សម្លៀកបំពាក់</button>
+        </div>
+        
+        <div class="product-grid-checkout" id="pos-grid">
+            {% for product in products %}
+            <div class="product-item-pos" data-category="{{ product.category }}" onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }})">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                {% endif %}
+                <div style="font-weight: 800; font-size: 1rem; margin-bottom: 0.4rem; color: var(--text-main);">${{ product.name }}</div>
+                <div style="color: #10b981; font-weight: 900; font-size: 1.1rem;">${{ product.price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right: Cart Sidebar -->
+    <div class="cart-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-weight: 900;">កន្ត្រកទំនិញ</h2>
+            <button class="btn" style="background: #fee2e2; color: #ef4444; padding: 0.5rem 1rem; border-radius: 12px;" onclick="clearCart()">🗑 លុបទាំងអស់</button>
+        </div>
+        
+        <div class="cart-items-pos" id="pos-cart-list">
+            <div style="text-align: center; color: var(--text-muted); margin-top: 6rem;">
+                <div style="font-size: 6rem; margin-bottom: 1.5rem; opacity: 0.1;">🛒</div>
+                <p style="font-weight: 700; font-size: 1.1rem;">កន្ត្រកទំនេរបំផុត</p>
+            </div>
+        </div>
+
+        <div class="summary-pos">
+            <div style="margin-bottom: 2rem;">
+                <label style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.75rem; display: block; text-transform: uppercase;">អ្នកគិតលុយ (Cashier)</label>
+                <input type="text" id="cashier-name" value="Admin" 
+                       style="width: 100%; padding: 1rem; border: 2px solid var(--border); border-radius: 14px; background: var(--bg); color: var(--text-main); font-weight: 700;">
+            </div>
+            <div class="total-pos">
+                <span>សរុប:</span>
+                <span id="pos-total" style="color: var(--primary);">$0.00</span>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 1.5rem; font-size: 1.5rem; border-radius: 20px;" onclick="processCheckout()">
+                ✅ ចេញវិក្កយបត្រភ្លាមៗ
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-overlay" id="receipt-modal">
+    <div class="receipt-modal">
+        <div class="receipt-header">
+            <h1 style="margin: 0; font-size: 2rem;">🚀 POS ULTRA</h1>
+            <p style="margin: 0.5rem 0; font-weight: 600; color: #64748b;">វិក្កយបត្រលក់ទំនិញ</p>
+        </div>
+        <div id="receipt-content">
+            <!-- Content dynamic -->
+        </div>
+        <div style="margin-top: 2rem; border-top: 2px dashed #e2e8f0; padding-top: 1.5rem; text-align: center;">
+            <p style="font-weight: 800; font-size: 1.25rem; margin: 0;">សូមអរគុណ!</p>
+            <p style="color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;">រីករាយថ្ងៃថ្មី ជួបគ្នាពេលក្រោយ!</p>
+            <button class="btn btn-primary" style="margin-top: 2rem; width: 100%;" onclick="closeModal()">បិទផ្ទាំងនេះ</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let cart = [];
+
+    function addToCart(id, name, price) {
+        const existing = cart.find(item => item.id === id);
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({ id, name, price, quantity: 1 });
+        }
+        playBeep();
+        renderCart();
+    }
+
+    function clearCart() {
+        if (cart.length > 0 && confirm('តើអ្នកពិតជាចង់លុបទំនិញទាំងអស់ចេញពីកន្ត្រក?')) {
+            cart = [];
+            renderCart();
+        }
+    }
+
+    function updateQty(id, delta) {
+        const item = cart.find(item => item.id === id);
+        if (item) {
+            item.quantity += delta;
+            if (item.quantity <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+        }
+        renderCart();
+    }
+
+    function renderCart() {
+        const list = document.getElementById('pos-cart-list');
+        const totalEl = document.getElementById('pos-total');
+        
+        if (cart.length === 0) {
+            list.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); margin-top: 6rem;">
+                    <div style="font-size: 6rem; margin-bottom: 1.5rem; opacity: 0.1;">🛒</div>
+                    <p style="font-weight: 700; font-size: 1.1rem;">កន្ត្រកទំនេរបំផុត</p>
+                </div>`;
+            totalEl.textContent = '$0.00';
+            return;
+        }
+
+        let total = 0;
+        list.innerHTML = cart.map(item => {
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+            return `
+                <div class="cart-item-pos">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 800; color: var(--text-main); font-size: 1.05rem;">${item.name}</div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">$${item.price}</div>
+                    </div>
+                    <div class="qty-control-pos">
+                        <button class="qty-btn-pos" onclick="updateQty(${item.id}, -1)">-</button>
+                        <span style="font-weight: 900; min-width: 25px; text-align: center; font-size: 1.1rem;">${item.quantity}</span>
+                        <button class="qty-btn-pos" onclick="updateQty(${item.id}, 1)">+</button>
+                        <div style="font-weight: 900; width: 80px; text-align: right; color: var(--primary); font-size: 1.1rem;">$${subtotal.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        totalEl.textContent = `$${total.toFixed(2)}`;
+    }
+
+    function playBeep() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.08);
+    }
+
+    async function processCheckout() {
+        if (cart.length === 0) return alert('សូមរើសទំនិញសិន!');
+        
+        const cashier = document.getElementById('cashier-name').value;
+        const totalAmount = cart.reduce((acc, i) => acc + (i.price * i.quantity), 0);
+        
+        try {
+            const response = await fetch('/sales/checkout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ cart, cashier })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                showReceipt(result.order_id, cashier, totalAmount);
+                cart = [];
+                renderCart();
+            } else {
+                alert('មានបញ្ហា: ' + result.error);
+            }
+        } catch (e) {
+            alert('Error: ' + e);
+        }
+    }
+
+    function showReceipt(id, cashier, total) {
+        const content = document.getElementById('receipt-content');
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 600;">
+                <span>លេខវិក្កយបត្រ:</span>
+                <span>#${id}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 600;">
+                <span>អ្នកគិតលុយ:</span>
+                <span>${cashier}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid var(--border);">
+                <span style="font-weight: 800; font-size: 1.2rem;">ទឹកប្រាក់សរុប:</span>
+                <span style="font-weight: 900; font-size: 1.5rem; color: #2563eb;">$${total.toFixed(2)}</span>
+            </div>
+        `;
+        document.getElementById('receipt-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('receipt-modal').style.display = 'none';
+    }
+
+    function filterByCategory(category) {
+        // Update active button
+        const buttons = document.querySelectorAll('.product-selection .btn');
+        buttons.forEach(btn => {
+            if (btn.textContent.includes(category) || (category === 'all' && btn.textContent === 'ទាំងអស់')) {
+                btn.classList.add('active');
+                btn.style.background = 'var(--primary)';
+                btn.style.color = 'white';
+            } else {
+                btn.classList.remove('active');
+                btn.style.background = 'var(--card-bg)';
+                btn.style.color = 'var(--text-main)';
+            }
+        });
+
+        const items = document.querySelectorAll('.product-item-pos');
+        items.forEach(item => {
+            if (category === 'all' || item.dataset.category === category) {
+                item.style.display = 'block';
+                item.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Search logic with highlight
+    document.getElementById('pos-search').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.product-item-pos');
+        items.forEach(item => {
+            const name = item.querySelector('div').textContent.toLowerCase();
+            if (name.includes(query)) {
+                item.style.display = 'block';
+                item.style.animation = 'fadeIn 0.4s ease';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('nav-checkout').classList.add('active');
+</script>
+{% endblock %}

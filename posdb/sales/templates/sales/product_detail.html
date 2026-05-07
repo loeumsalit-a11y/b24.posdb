@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} — POS System{% endblock %}
+
+{% block extra_css %}
+.product-detail-container {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.product-image-placeholder {
+    background: #e2e8f0;
+    border-radius: 16px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.detail-card {
+    padding: 0;
+}
+
+.detail-section {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.detail-section:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.detail-value {
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.price-display {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #059669;
+}
+
+.stock-warning {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .product-detail-container {
+        grid-template-columns: 1fr;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <div class="product-image">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; border-radius: 16px; box-shadow: var(--shadow);">
+        {% else %}
+            <div class="product-image-placeholder">
+                📦
+            </div>
+        {% endif %}
+    </div>
+
+
+    <div class="card">
+        <span class="badge" style="background: #eff6ff; color: #2563eb; margin-bottom: 1rem;">
+            {{ product.get_category_display }}
+        </span>
+        <h1 style="margin: 0 0 1.5rem 0; font-size: 2.5rem;">{{ product.name }}</h1>
+
+        <div class="detail-section">
+            <span class="detail-label">តម្លៃលក់ (Sale Price)</span>
+            <div class="price-display">${{ product.price|floatformat:2 }}</div>
+        </div>
+
+        <div class="detail-section">
+            <span class="detail-label">Barcode</span>
+            <div class="detail-value" style="font-family: monospace; letter-spacing: 1px;">
+                {{ product.barcode|default:"មិនទាន់មាន Barcode" }}
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <span class="detail-label">កម្រិតស្តុក (Inventory Level)</span>
+            <div class="detail-value">
+                {{ product.stock }} គ្រាប់ក្នុងស្តុក
+            </div>
+            {% if product.stock <= 10 %}
+            <div class="stock-warning">
+                ⚠️ ប្រុងប្រយ័ត្ន: ទំនិញជិតអស់ពីស្តុកហើយ!
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="actions">
+            <a href="/sales/products/" class="btn" style="background: var(--bg); color: var(--text-main); border: 1px solid var(--border);">
+                ← ត្រឡប់ក្រោយ
+            </a>
+            <a href="/admin/sales/product/{{ product.id }}/change/" class="btn btn-primary" target="_blank">
+                ✏️ កែសម្រួលព័ត៌មាន
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('nav-products').classList.add('active');
+</script>
+{% endblock %}
