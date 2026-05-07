@@ -25,8 +25,9 @@ SECRET_KEY = 'django-insecure-&d=!zg98ru2l@#0r7d$h6bnzy4z5^t0b#69v!zncq1v!itofql
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['loeumsalit123.pythonanywhere.com', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = []
+#ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -125,7 +126,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+CSRF_TRUSTED_ORIGINS = [
+    'https://loemsalit123.pythonanywhere.com',
+    'http://loemsalit123.pythonanywhere.com',
+]
 
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 # Session Configuration
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 300  # 300 seconds = 5 minutes of inactivity
